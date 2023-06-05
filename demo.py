@@ -8,7 +8,7 @@ import box
 
 def main() -> None:
     # Create a codec from the python sdk
-    order_codec = ABIType.from_string(str(box.Order().type_spec()))
+    # order_codec = ABIType.from_string(str(box.Order().type_spec()))
 
     acct = sandbox.kmd.get_accounts().pop()
 
@@ -29,27 +29,27 @@ def main() -> None:
     order_number = 12
     # order = {"quantity": 8, "item": "cubes"}
     order = [1000000, 2000000, 3000000, 4000000, 5000000]
-    app_client.call(box.place_order, order_number = order_number, order = order)
+    app_client.call(box.place_order, order_number = order_number)
 
     # Get the order from the state field
     state_key = order_number.to_bytes(1, "big")
     stored_order = app_client.get_local_state(raw=True)[state_key]
     # assert isinstance(stored_order, bytes)
-    state_decoded = order_codec.decode(stored_order)
+    # state_decoded = order_codec.decode(stored_order)
 
-    print(
-        "We can get the order we stored from local "
-        f"state of the sender: {state_decoded}"
-    )
+    # print(
+    #     "We can get the order we stored from local "
+    #     f"state of the sender: {state_decoded}"
+    # )
 
     # Or we could call the read-only method, passing the order number
-    result = app_client.call(box.read_item_2, order_number=order_number)
-    # abi_decoded = order_codec.decode(result.raw_value)
-    # print(f"Decoded result: {abi_decoded}")
-    print(result.return_value)
+    # result = app_client.call(box.read_item_2, order_number=order_number)
+    # # abi_decoded = order_codec.decode(result.raw_value)
+    # # print(f"Decoded result: {abi_decoded}")
+    # print(result.return_value)
 
-    result = app_client.call(box.calc_st, order_number=order_number)
-    print(order_codec.decode(result.return_value))
+    # result = app_client.call(box.calc_st, order_number=order_number)
+    # print(order_codec.decode(result.return_value))
 
     # Update the order to increase the quantity
     # result = app_client.call(box.increase_quantity, order_number=order_number)

@@ -1,24 +1,30 @@
 import pyteal as pt
-
+from typing import Literal
 import beaker
 
 
-# Our custom Struct
-class Order(pt.abi.NamedTuple):
-    a1: pt.abi.Field[pt.abi.Uint64]
-    a2: pt.abi.Field[pt.abi.Uint64]
-    a3: pt.abi.Field[pt.abi.Uint64]
-    a4: pt.abi.Field[pt.abi.Uint64]
-    a5: pt.abi.Field[pt.abi.Uint64]
-    # item: pt.abi.Field[pt.abi.String]
-    # quantity: pt.abi.Field[pt.abi.Uint16]
+# # Our custom Struct
+# class Order(pt.abi.NamedTuple):
+#     a1: pt.abi.Field[pt.abi.Uint64]
+#     a2: pt.abi.Field[pt.abi.Uint64]
+#     a3: pt.abi.Field[pt.abi.Uint64]
+#     a4: pt.abi.Field[pt.abi.Uint64]
+#     a5: pt.abi.Field[pt.abi.Uint64]
+#     # item: pt.abi.Field[pt.abi.String]
+#     # quantity: pt.abi.Field[pt.abi.Uint16]
 
-# a1 = pt.abi.Field[pt.abi.Uint64]
-# a2 = pt.abi.Field[pt.abi.Uint64]
-# a3 = pt.abi.Field[pt.abi.Uint64]
-# a4 = pt.abi.Field[pt.abi.Uint64]
-# a5 = pt.abi.Field[pt.abi.Uint64]
+a1 = pt.Bytes("1")
+a2 = pt.Bytes("2")
+a3 = pt.Bytes("3")
+a4 = pt.Bytes("4")
+a5 = pt.Bytes("5")
 
+arr_order = [a1, a2, a3, a4, a5]
+# Assume you have a StaticArray of integers
+# static_array = pt.abi.StaticArray[pt.abi.Uint64, 5]
+Order = pt.abi.StaticArray[pt.TealType.bytes, 5]
+# Order = pt.abi.StaticArray.new_instance(pt.TealType.uint64)
+# Order = pt.abi.DynamicArray[pt.abi.Uint64]
 # Order = pt.abi.StaticArray[a1, a2, a3, a4, a5]
     # item: pt.abi.Field[pt.abi.String]
     # quantity: pt.abi.Field[pt.abi.Uint16]
@@ -40,8 +46,8 @@ app = (
 
 
 @app.external
-def place_order(order_number: pt.abi.Uint8, order: Order) -> pt.Expr:
-    return app.state.orders[order_number].set(order.encode())
+def place_order(order_number: pt.abi.Uint8) -> pt.Expr:
+    return app.state.orders[order_number].set(arr_order)
 
 
 # @app.external(read_only=True)
@@ -68,27 +74,29 @@ def read_item_2(order_number: pt.abi.Uint8, *, output: pt.abi.Uint64) -> pt.Expr
         output.set(quant.get() + pt.Int(1))
     )
 
-@app.external
-def calc_st(order_number: pt.abi.Uint8, *, output: pt.abi.Uint64) -> pt.Expr:
-    total_sum = pt.ScratchVar(pt.TealType.uint64)
-    l = pt.ScratchVar(pt.TealType.uint64)
-    j = pt.ScratchVar(pt.TealType.uint64)
+# @app.external
+# def calc_st(order_number: pt.abi.Uint8, *, output: pt.abi.Uint64) -> pt.Expr:
+#     total_sum = pt.ScratchVar(pt.TealType.uint64)
+#     l = pt.ScratchVar(pt.TealType.uint64)
+#     j = pt.ScratchVar(pt.TealType.uint64)
+#     x = pt.abi.make(pt.abi.Uint64)
 
-    return pt.Seq(
-        total_sum.store(pt.Int(0)),
-        l.store(pt.Int(5)),
-        (order := Order()).decode(app.state.orders[order_number]),
-        pt.For(
-            j.store(pt.Int(0)),
-            j.load() < l.load(), 
-            j.store(j.load() + pt.Int(1)),
-        ).Do(
-            (x := pt.abi.Uint64()).set(j.load()),
-            (element := pt.abi.Uint64()).set(order[x]),
-            total_sum.store(total_sum.load() +  element.get()),
-        ),
-        output.set(total_sum.load())
-    )
+#     return pt.Seq(
+#         total_sum.store(pt.Int(0)),
+#         l.store(pt.Int(5)),
+#         (order := Order()).decode(app.state.orders[order_number]),
+#         pt.For(
+#             j.store(pt.Int(0)),
+#             j.load() < l.load(), 
+#             j.store(j.load() + pt.Int(1)),
+#         ).Do(
+#             (x.set(j.load())),
+#             # total_sum.store(j.load() + pt.Int(10))
+#             (element := pt.abi.Uint64()).set(order[pt.Bytes("a1")]),
+#             total_sum.store(total_sum.load() +  element.get()),
+#         ),
+#         output.set(total_sum.load())
+#     )
 
 @pt.Subroutine(pt.TealType.bytes)
 def get_item(order_number: pt.abi.Uint8) -> pt.Expr:
